@@ -1,6 +1,7 @@
 import requests
 import re
 import sys
+from bs4 import BeautifulSoup as bs4
 
 def getHelp():
     # Print the help text
@@ -9,6 +10,17 @@ def getHelp():
     print("PARAMETERS")
     print("  -h/--help: Print this help.")
     print("\n")
+
+def resolveBoxName(BOX_NAME):
+    
+    r = requests.get("https://forum.hackthebox.eu/categories/machines")
+    html = r.text
+    soup = bs4(html, features="html.parser")
+    for link in soup.find_all('a', href=True):
+        if "https" in link['href']:
+            href_link = link['href']
+            if href_link.split("/")[-1] == BOX_NAME.lower():
+                return href_link
 
 def getMaxPages(r):
     # This will return the current amount of pages of the forum thread
@@ -94,7 +106,7 @@ def getHints(maxPage, baseUrl):
         print("No root hints found.")
 
 if __name__ == "__main__":
-    baseUrl = sys.argv[1]
+    baseUrl = resolveBoxName(sys.argv[1])
     urlPattern = re.compile("(\/p[0-9]{0,})")
     
     if baseUrl == "-h" or baseUrl == "--help":
